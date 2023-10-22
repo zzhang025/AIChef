@@ -15,7 +15,7 @@
     display: flex;
     flex-direction: column;
     backdrop-filter: blur(5px) brightness(40%);
-    height:100%
+    height:100%;
 }
 
 main{
@@ -24,4 +24,24 @@ main{
 
 footer{
     flex-shrink: 0;
+}
+
+.langdingPage{
+    display: flex;
+    flex-direction: column;
+    align-items:center;
+    justify-content:center;
+}
+
+a{
+    color: var(--bs-light);
+    text-decoration:none;
+}
+
+a:visited{
+    color: var(--bs-light);
+}
+
+a:hover{
+    cursor:pointer;
 }
