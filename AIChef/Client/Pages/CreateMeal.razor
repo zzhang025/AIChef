@@ -25,10 +25,44 @@
                         <label class="form-label">Ingredient: </label>
                         <InputText placeholder="Add Ingredient" maxlength="30" @bind-Value="meal.ingredient" class="form-control mb-2" />
                     </div>
+                    <div class="col-12">
+                        <button class="btn btn-outline-success" @onclick="AddIngredient">Add</button>
+                        <button class="btn btn-outline-danger" @onclick="RemoveAll">Clear</button>
+                    </div>
                     <div class="col-3">
                         <div class="form-check">
                             <InputCheckbox @bind-Value="meal.Chinese" class="form-check-input" id="chineseCheckbox" />
                             <label class="form-check-label" for="chineseCheckbox">Chinese (Yes/No):</label>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-4">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Ingredients</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ingredients)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @item.Description
+                                                </td>
+
+                                                <td class="text-end pe-3">
+                                                    <button class="btn btn-outline-danger" @onclick="()=>RemoveIngredient(item.Id)">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-success rounded">Generate Recipe</button>
                         </div>
                     </div>
                 </div>
@@ -43,6 +77,8 @@
 
     private Meal meal = new();
 
+    private List<Ingredient> ingredients = new List<Ingredient>();
+
     protected override void OnInitialized()
     {
         editcontext = new(meal);
@@ -55,5 +91,29 @@
         public string? ingredient { get; set; }
     }
 
+    private void AddIngredient()
+    {
+        if (!string.IsNullOrEmpty(meal.ingredient))
+        {
+            ingredients.Add(new Ingredient
+            {
+                Id= Guid.NewGuid(),
+                Description = meal.ingredient
+            }) ;
+        }
+
+        // Clear the text box
+        meal.ingredient = string.Empty;
+    }
+
+    private void RemoveAll()
+    {
+        ingredients.Clear();
+    }
+
+    private void RemoveIngredient(Guid Id)
+    {
+        ingredients.Remove(ingredients.First(x => x.Id == Id));
+    }
 }
 
