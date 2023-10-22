@@ -1,0 +1,59 @@
+﻿@page "/mealIdeas"
+@using AIChef.Shared;
+@inject NavigationManager navigationManager;
+
+
+
+@if (loaded == true)
+    {
+    <div class="container">
+        <h3 class="mb-3 mt-3">Pick what you like</h3>
+        <div class="list-group">
+            @foreach (var item in ideas)
+                {
+                <button class="list-group-item list-group-item-action list-group-item-success p-2">
+                    <div class="d-flex w-100 justify-content-sm-between">
+                        <h2 class="mb-1 fw-bold">@item.title</h2>
+                        <p class="mb-1">@item.description</p>
+                    </div>
+                </button>
+                }
+        </div>
+    </div>
+    }
+    else
+    {
+        <div class="container">
+            <h3>RecipeState Values</h3>
+            <p>@rState.MealTime</p>
+            @foreach (var item in rState.ingredients)
+                {
+                    <p>@item.Description</p>
+                }
+        </div>
+    }
+
+
+
+
+@code {
+    private List<RecipeIdeas> ideas = new List<RecipeIdeas>();
+
+    private bool loaded = false;
+
+    [CascadingParameter]
+    private RecipeState rState { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (rState is null)
+        {
+            navigationManager.NavigateTo("/", forceLoad: true);
+            return;
+        }
+
+
+    }
+
+}
+

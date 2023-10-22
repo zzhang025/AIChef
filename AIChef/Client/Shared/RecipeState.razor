@@ -1,0 +1,25 @@
+﻿@using AIChef.Shared
+
+<CascadingValue Value="@this">
+    @ChildContent
+</CascadingValue>
+
+
+@code {
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+
+
+    public string MealTime { get; set; } = "Lunch";
+
+    public List<Ingredient> ingredients { get; set; } = new List<Ingredient>();
+
+    public bool isChinese { get; set; } = true;
+
+    public List<RecipeIdeas> ideas { get; set; } = new List<RecipeIdeas>();
+
+
+}
+

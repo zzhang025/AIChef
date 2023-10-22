@@ -1,8 +1,7 @@
 ﻿@page "/createmeal"
 @using AIChef.Shared
 @using Microsoft.AspNetCore.Components.Forms;
-@using System.ComponentModel.DataAnnotations;
-
+@inject NavigationManager navigationManager
 
 <PageTitle>AI Chef - Create Meal</PageTitle>
 
@@ -62,7 +61,7 @@
                             </table>
                         </div>
                         <div class="col-12">
-                            <button class="btn btn-success rounded">Generate Recipe</button>
+                            <button class="btn btn-success rounded" @onclick="HandleSubmit">Generate Recipe</button>
                         </div>
                     </div>
                 </div>
@@ -73,6 +72,9 @@
 
 
 @code {
+    [CascadingParameter]
+    private RecipeState? rState { get; set; }
+
     private EditContext? editcontext;
 
     private Meal meal = new();
@@ -81,7 +83,17 @@
 
     protected override void OnInitialized()
     {
+        if (rState is null)
+        {
+            navigationManager.NavigateTo("/", forceLoad: true);
+            return;
+        }
+
         editcontext = new(meal);
+
+        meal.mealtime = rState.MealTime;
+        ingredients = rState.ingredients;
+        meal.Chinese = rState.isChinese;
     }
 
     private class Meal
@@ -114,6 +126,14 @@
     private void RemoveIngredient(Guid Id)
     {
         ingredients.Remove(ingredients.First(x => x.Id == Id));
+    }
+
+    private void HandleSubmit()
+    {
+        rState.MealTime = meal.mealtime;
+        rState.ingredients = ingredients;
+        rState.isChinese = meal.Chinese;
+        navigationManager.NavigateTo("/mealIdeas");
     }
 }
 
