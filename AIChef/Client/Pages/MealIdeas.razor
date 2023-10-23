@@ -1,6 +1,8 @@
 ﻿@page "/mealIdeas"
 @using AIChef.Shared;
+@using System.Text.Json;
 @inject NavigationManager navigationManager;
+@inject HttpClient Http;
 
 
 
@@ -14,8 +16,8 @@
                 <button class="list-group-item list-group-item-action list-group-item-success p-2">
                     <div class="d-flex w-100 justify-content-sm-between">
                         <h2 class="mb-1 fw-bold">@item.title</h2>
-                        <p class="mb-1">@item.description</p>
                     </div>
+                        <p class="mb-1">@item.description</p>
                 </button>
                 }
         </div>
@@ -24,12 +26,7 @@
     else
     {
         <div class="container">
-            <h3>RecipeState Values</h3>
-            <p>@rState.MealTime</p>
-            @foreach (var item in rState.ingredients)
-                {
-                    <p>@item.Description</p>
-                }
+            <p>Loading...</p>
         </div>
     }
 
@@ -44,6 +41,13 @@
     [CascadingParameter]
     private RecipeState rState { get; set; }
 
+    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+    };
+
     protected override void OnInitialized()
     {
         if (rState is null)
@@ -51,8 +55,46 @@
             navigationManager.NavigateTo("/", forceLoad: true);
             return;
         }
+        if (!rState.ideas.Any())
+        {
+            GetIdeas();
+        }
+        else
+        {
+            loaded = true;
+            ideas = rState.ideas;
+            StateHasChanged();
+        }
 
+    }
 
+    private async void GetIdeas()
+    {
+        string baseuri = "Recipe/GetRecipeIdeas";
+        loaded = false;
+
+        RecipeParms recipeParms = new RecipeParms()
+        {
+            MealTime = rState.MealTime,
+            isChinese = rState.isChinese,
+            Ingredients = rState.ingredients
+        };
+        // Call  web api controller
+        try
+        {
+            HttpResponseMessage response = await Http.PostAsJsonAsync(baseuri, recipeParms, _jsonOptions);
+            response.EnsureSuccessStatusCode();
+
+            ideas = (await response.Content.ReadFromJsonAsync<List<RecipeIdeas>>())!;
+            rState.ideas = ideas;
+
+            loaded = true;
+            StateHasChanged();
+        }
+        catch
+        {
+            Console.WriteLine("Error: Could not fetch recipe ideas");
+        }
     }
 
 }
