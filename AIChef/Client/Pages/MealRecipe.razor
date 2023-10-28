@@ -3,6 +3,7 @@
 @inject HttpClient Http;
 @inject NavigationManager Navigation;
 @using System.Text.Json;
+@using System.Web;
 
 <div class="container mt-5 h-100">
     <div class="d-flex flex-column flex-lg-row justify-content-start">
@@ -35,10 +36,44 @@
     public int Index { get; set; }
 
     private string title;
-
+    private string recipeImageURL = string.Empty;
+    private Recipe recipe;
     protected override void OnInitialized()
     {
-        title = recipeState.ideas.FirstOrDefault(i => i.index == Index).title;
+
+    }
+
+    private async void GetRecipe()
+    {
+        string baseuri = "Recipe/GetRecipe";
+
+        try
+        {
+            string title = recipeState.ideas.FirstOrDefault(i => i.index == Index).title;
+
+            RecipeParms recipeParms = new RecipeParms()
+            {
+                MealTime = recipeState.MealTime,
+                isChinese = recipeState.isChinese,
+                Ingredients = recipeState.ingredients,
+                SelectedIdea = title
+            };
+
+            //Get the recipe image
+            HttpResponseMessage responseImage = await Http.GetAsync($"Recipe/GetRecipeImage?title={HttpUtility.UrlEncode(title)}");
+            var recipeImage = await responseImage.Content.ReadFromJsonAsync<RecipeImage>();
+            recipeImageURL = recipeImage!.data[0].url;
+
+            //Get the recipe
+            HttpResponseMessage responseRecipe = await Http.PostAsJsonAsync(baseuri, recipeParms);
+            recipe = await responseRecipe.Content.ReadFromJsonAsync<Recipe>();
+
+            StateHasChanged();
+        }
+        catch
+        {
+            Console.WriteLine("Error: Could not generate recipe");
+        }
     }
 
 }

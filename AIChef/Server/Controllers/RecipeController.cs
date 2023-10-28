@@ -33,6 +33,19 @@ namespace AIChef.Server.Controllers
             return ideas;
             //return SampleData.RecipeIdeas;
         }
+
+        [HttpPost, Route("GetRecipe")]
+        public async Task<ActionResult<Recipe>> GetRecipe(RecipeParms recipeParms)
+        {
+
+            return SampleData.Recipe;
+        }
+
+        [HttpGet, Route("GetRecipeImage")]
+        public async Task<RecipeImage> GetRecipeImage(string title)
+        {
+            return SampleData.RecipeImage;
+        }
     }
 }
 
