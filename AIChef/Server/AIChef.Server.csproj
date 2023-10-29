@@ -23,11 +23,13 @@
     <None Remove="Data\" />
     <None Remove="Services\" />
     <None Remove="Models\" />
+    <None Remove="Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Services\" />
     <Folder Include="Models\" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="Data\SampleData.json" />

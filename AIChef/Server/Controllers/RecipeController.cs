@@ -25,7 +25,7 @@ namespace AIChef.Server.Controllers
 
             if (string.IsNullOrEmpty(mealtime))
             {
-                mealtime = "Lunch";
+                mealtime = "Breakfast";
             }
 
             var ideas = await _openAIservice.CreateRecipeIdeas(mealtime, ingredients, chinese);
@@ -37,14 +37,24 @@ namespace AIChef.Server.Controllers
         [HttpPost, Route("GetRecipe")]
         public async Task<ActionResult<Recipe>> GetRecipe(RecipeParms recipeParms)
         {
+            List<string> ingredients = recipeParms.Ingredients.Where(x => !string.IsNullOrEmpty(x.Description)).Select(x => x.Description!).ToList();
 
-            return SampleData.Recipe;
+            string? title = recipeParms.SelectedIdea;
+            if (string.IsNullOrEmpty(title))
+            {
+                return BadRequest();
+            }
+
+            var recipe = await _openAIservice.CreateRecipe(title, ingredients);
+
+            return recipe!;
         }
 
         [HttpGet, Route("GetRecipeImage")]
         public async Task<RecipeImage> GetRecipeImage(string title)
         {
-            return SampleData.RecipeImage;
+            var recipeImage = await _openAIservice.CreateRecipeImage(title);
+            return recipeImage ?? SampleData.RecipeImage;
         }
     }
 }

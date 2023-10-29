@@ -107,7 +107,7 @@ namespace AIChef.Server.Services
                 },
             }
         };
-
+       
         public OpenAIService(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -127,7 +127,7 @@ namespace AIChef.Server.Services
         public async Task<List<RecipeIdeas>> CreateRecipeIdeas(string mealtime, List<string> ingredientList, bool isChinese)
         {
             string url = $"{_baseUrl}chat/completions";
-            string systemPrompt = "You are a world-renwned chef. I will send you a list of ingredients, whether it is a chinese dish and a meal time. You will respond with 5 ideas for dishes.";
+            string systemPrompt = "You are a world-renwned chef. I will send you a list of ingredients, whether it is a chinese or nonchinese dish and a meal time. You will respond with 5 ideas for dishes.";
             string userPrompt = "";
             string ingredientPrompt = "";
             string chinese = isChinese ? "The dishes must be Chinese food and you will give the answer in Chinese" : "";
@@ -193,6 +193,79 @@ namespace AIChef.Server.Services
             }
 
             return ideasResult?.Data ?? new List<RecipeIdeas>();
+        }
+
+
+        public async Task<Recipe?> CreateRecipe(string title, List<string> ingrediants)
+        {
+            string url = $"{_baseUrl}chat/completions";
+            string systemPrompt = "You are a world-renowned chef. Create the recipe with ingredients, instructions and a summary";
+            string userPrompt = $"Create a {title} recipe. if the title is in Chinese, then use Chinese to reply";
+
+            ChatMessage userMessage = new()
+            {
+                Role = "user",
+                Content = $"{systemPrompt}{userPrompt}"
+            };
+
+            ChatRequest request = new()
+            {
+                Model = "gpt-3.5-turbo-0613",
+                Messages = new[] { userMessage },
+                Functions = new[] { _recipeFunction },
+                FunctionCall = new { Name = _recipeFunction.Name }
+            };
+
+            HttpResponseMessage httpResponse = await _httpClient.PostAsJsonAsync(url, request, _jsonOptions);
+
+            ChatResponse? response = await httpResponse.Content.ReadFromJsonAsync<ChatResponse>();
+
+            ChatFunctionResponse? functionResponse = response.Choices?.FirstOrDefault(m => m.Message?.FunctionCall is not null)?.Message?.FunctionCall;
+
+            Result<Recipe>? recipe = new();
+
+            if (functionResponse?.Arguments is not null)
+            {
+                try
+                {
+                    recipe = JsonSerializer.Deserialize<Result<Recipe>>(functionResponse.Arguments, _jsonOptions);
+                }
+                catch (Exception ex)
+                {
+                    recipe = new()
+                    {
+                        Exception = ex,
+                        ErrorMessage = await httpResponse.Content.ReadAsStringAsync()
+                    };
+                }
+            }
+
+            return recipe?.Data;
+        }
+
+        public async Task<RecipeImage?> CreateRecipeImage(string title)
+        {
+            string url = $"{_baseUrl}images/generations";
+            string userPrompt = $"Create a restaurant product shot for {title}";
+
+            ImageGenerationRequest request = new()
+            {
+                Prompt = userPrompt
+            };
+
+            HttpResponseMessage httpResponse = await _httpClient.PostAsJsonAsync(url, request, _jsonOptions);
+            RecipeImage? recipeImage = null;
+            try
+            {
+               recipeImage = await httpResponse.Content.ReadFromJsonAsync<RecipeImage>();
+
+            }
+            catch
+            {
+                Console.WriteLine("Error: Recipe Image could not be retreived");
+            }
+
+            return recipeImage;
         }
     }
 }
