@@ -1,0 +1,5 @@
+﻿
+
+function printInvoke() {
+    window.print();
+}
