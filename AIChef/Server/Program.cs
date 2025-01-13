@@ -1,5 +1,4 @@
 ﻿using AIChef.Server.Services;
-using Microsoft.AspNetCore.ResponseCompression;
 
 namespace AIChef;
 
